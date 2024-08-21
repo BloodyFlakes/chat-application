@@ -1,13 +1,17 @@
-import "./Login.css";
-import assets from "../../assets/assets";
 import { useState } from "react";
+import assets from "../../assets/assets";
+import "./Login.css";
+
+type AssetsType = {
+  logo_big: string;
+};
 
 function Login() {
   const [currState, setCurrState] = useState<string>("Sign up");
 
   return (
     <div className="login">
-      <img src={assets.logo_big} alt="logo" />
+      <img src={(assets as AssetsType).logo_big} alt="logo" />
       <form className="login-form">
         <h2>{currState}</h2>
 
