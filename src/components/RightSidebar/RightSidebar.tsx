@@ -1,4 +1,5 @@
 import assets from "../../assets/assets";
+import { logout } from "../../config/firebase";
 import "./RightSidebar.css";
 
 type AssetsType = {
@@ -33,7 +34,7 @@ function RightSidebar() {
           <img src={(assets as AssetsType).pic2} alt="pic6" />
         </div>
       </div>
-      <button>Logout</button>
+      <button onClick={() => logout()}>Logout</button>
     </div>
   );
 }
