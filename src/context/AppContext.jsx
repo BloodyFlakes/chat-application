@@ -1,9 +1,13 @@
-import { doc, getDoc } from 'firebase/firestore';
+import PropTypes from 'prop-types';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { createContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { db } from '../config/firebase';
+import { auth, db } from '../config/firebase';
+import { useNavigate } from 'react-router';
 
 export const AppContext = createContext(undefined);
+
+import { onAuthStateChanged } from 'firebase/auth';
+import { useEffect } from 'react';
 
 const AppContextProvider = (props) => {
   const [userData, setUserData] = useState(null);
@@ -11,14 +15,52 @@ const AppContextProvider = (props) => {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const checkAuthAndLoadUserData = () => {
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          loadUserData(user.uid);
+        } else {
+          console.log('User is not authenticated');
+          navigate('/login'); // Redirect to login if not authenticated
+        }
+      });
+    };
+
+    checkAuthAndLoadUserData();
+  }, []);
+
   const loadUserData = async (uid) => {
     try {
       const userRef = doc(db, 'users', uid);
       const userSnap = await getDoc(userRef);
-      const userData = userSnap.data();
-      setUserData(userData);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        setUserData(userData);
+        console.log(userData);
+        if (userData.avatar && userData.name) {
+          navigate('/chat');
+        } else {
+          navigate('/profile');
+        }
+
+        await updateDoc(userRef, {
+          lastSeen: Date.now(),
+        });
+
+        setInterval(async () => {
+          if (auth.currentUser) {
+            await updateDoc(userRef, {
+              lastSeen: Date.now(),
+            });
+          }
+        }, 60000);
+      } else {
+        console.log('No user data found');
+      }
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.log(error);
     }
   };
 
@@ -33,6 +75,10 @@ const AppContextProvider = (props) => {
   return (
     <AppContext.Provider value={value}>{props.children}</AppContext.Provider>
   );
+};
+
+AppContextProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 };
 
 export default AppContextProvider;
