@@ -26,7 +26,9 @@ const signUp = async (username, email, password) => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const user = res.user;
 
-    const userData = {
+    console.log('User created:', user.uid);
+
+    await setDoc(doc(db, 'users', user.uid), {
       id: user.uid,
       username: username.toLowerCase(),
       email,
@@ -34,18 +36,18 @@ const signUp = async (username, email, password) => {
       avatar: '',
       bio: "Hey, I'm using this app",
       lastSeen: Date.now(),
-    };
-    await setDoc(doc(db, 'users', user.uid), userData);
+    });
 
-    const chatData = {
-      chatData: [],
-    };
-    await setDoc(doc(db, 'chats', user.uid), chatData);
+    console.log('User document created successfully.');
+
+    // Attempt to create the chats document
+    await setDoc(doc(db, 'chats', user.uid), {
+      chatsData: [],
+    });
+    console.log('Chats document created successfully.');
   } catch (error) {
-    if (error instanceof FirebaseError) {
-      console.error(error);
-      toast.error(error.message.split('/')[1].split('-').join(' '));
-    }
+    console.error('Error during signup: ', error);
+    toast.error(error.message.split('/')[1].split('-').join(' '));
   }
 };
 

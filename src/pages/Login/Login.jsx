@@ -62,12 +62,12 @@ function Login() {
         <div className='login-forgot'>
           {currState === 'Sign up' ? (
             <p className='login-toggle'>
-              Already have an account{' '}
+              Already have an account
               <span onClick={() => setCurrState('Login')}>Login here</span>
             </p>
           ) : (
             <p className='login-toggle'>
-              Create an account{' '}
+              Create an account
               <span onClick={() => setCurrState('Sign up')}>click here</span>
             </p>
           )}

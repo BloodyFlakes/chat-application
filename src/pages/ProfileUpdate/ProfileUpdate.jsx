@@ -113,7 +113,13 @@ function ProfileUpdate() {
         </form>
 
         <img
-          src={image ? URL.createObjectURL(image) : assets.logo_icon}
+          src={
+            image
+              ? URL.createObjectURL(image)
+              : prevImage
+              ? prevImage
+              : assets.logo_icon
+          }
           alt='logo-icon'
           className='profile-pic'
         />

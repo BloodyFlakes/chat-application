@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { createContext, useState } from 'react';
 import { auth, db } from '../config/firebase';
 import { useNavigate } from 'react-router';
@@ -21,8 +21,7 @@ const AppContextProvider = (props) => {
         if (user) {
           loadUserData(user.uid);
         } else {
-          console.log('User is not authenticated');
-          navigate('/login'); // Redirect to login if not authenticated
+          navigate('/');
         }
       });
     };
@@ -38,7 +37,6 @@ const AppContextProvider = (props) => {
       if (userSnap.exists()) {
         const userData = userSnap.data();
         setUserData(userData);
-        console.log(userData);
         if (userData.avatar && userData.name) {
           navigate('/chat');
         } else {
@@ -63,6 +61,26 @@ const AppContextProvider = (props) => {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    if (userData) {
+      const chatRef = doc(db, 'chats', userData.id);
+      const unSub = onSnapshot(chatRef, async (res) => {
+        const chatItems = res.data().chatsData;
+        const tempData = [];
+        for (const item of chatItems) {
+          const userRef = doc(db, 'users', item.rId);
+          const userSnap = await getDoc(userRef);
+          const userData = userSnap.data();
+          tempData.push({ ...item, userData });
+        }
+        setChatData(tempData.sort((a, b) => b.updatedAt - a.updatedAt));
+      });
+      return () => {
+        unSub();
+      };
+    }
+  }, [userData]);
 
   const value = {
     userData,
